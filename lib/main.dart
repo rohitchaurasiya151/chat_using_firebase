@@ -1,115 +1,146 @@
-import 'package:flutter/material.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_easyloading/flutter_easyloading.dart';
+// import 'package:provider/provider.dart';
+// import '../../../Screens/Welcome/welcome_screen.dart';
+// import '../../../constants.dart';
+// import 'Screens/Signup/provider/SignUpProvider.dart';
+//
+// void main() {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   Firebase.initializeApp();
+//   runApp(const MyApp());
+// }
+//
+// class MyApp extends StatelessWidget {
+//   const MyApp({Key? key}) : super(key: key);
+//
+//   // This widget is the root of your application.
+//   @override
+//   Widget build(BuildContext context) {
+//     return MultiProvider(
+//       providers: [ChangeNotifierProvider(create: (_) => SignUpProvider())],
+//       child: MaterialApp(
+//         debugShowCheckedModeBanner: false,
+//         builder: EasyLoading.init(),
+//         title: 'Flutter Auth',
+//         theme: ThemeData(
+//           primaryColor: kPrimaryColor,
+//           scaffoldBackgroundColor: Colors.white,
+//         ),
+//         home: const WelcomeScreen(),
+//       ),
+//     );
+//   }
+// }
 
-void main() {
+import 'package:chat_using_firebase/Screens/UserList/user_list_screen.dart';
+import 'package:chat_using_firebase/config/firebase_config.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+
+import 'Auth/auth_controller.dart';
+import 'constant/firebase_auth_constant.dart';
+
+final Future<FirebaseApp> firebaseInitialization =
+    Firebase.initializeApp(options: DefaultFirebaseConfig.platformOptions);
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Firebase.initializeApp();
+  await firebaseInitialization.then((value) {
+    Get.put(AuthController());
+  });
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+    return ScreenUtilInit(
+      designSize: const Size(640, 1340),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (_) => GetMaterialApp(
+        builder: EasyLoading.init(),
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: AppTheme.lightTheme,
+        // we don't really have to put the home page here
+        // GetX is going to navigate the user and clear the navigation stack
+        home: const Center(child: CircularProgressIndicator()),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class AppTheme {
+  //
+  AppTheme._();
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+  static final ThemeData lightTheme = ThemeData(
+    scaffoldBackgroundColor: Colors.white,
+    appBarTheme: const AppBarTheme(
+      color: Colors.blueAccent,
+      iconTheme: IconThemeData(
+        color: Colors.white,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+    ),
+    colorScheme: const ColorScheme.light(
+      primary: Colors.black,
+      onPrimary: Colors.white,
+      secondary: Colors.red,
+    ),
+    cardTheme: const CardTheme(
+      color: Colors.teal,
+    ),
+    iconTheme: const IconThemeData(
+      color: Colors.white54,
+    ),
+    textTheme: const TextTheme(
+      bodyMedium: TextStyle(
+        color: Colors.black,
+        fontSize: 20.0,
+      ),
+    ),
+  );
+
+  static final ThemeData darkTheme = ThemeData(
+      scaffoldBackgroundColor: Colors.black,
+      appBarTheme: const AppBarTheme(
+        color: Colors.black,
+        iconTheme: IconThemeData(
+          color: Colors.white,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
-  }
+      colorScheme: const ColorScheme.dark(
+        primary: Colors.white,
+        onPrimary: Colors.black,
+        secondary: Colors.red,
+      ),
+      cardTheme: const CardTheme(
+        color: Colors.white,
+      ),
+      iconTheme: const IconThemeData(
+        color: Colors.white54,
+      ),
+      textTheme: const TextTheme(
+        bodyMedium: TextStyle(
+          color: Colors.white,
+          fontSize: 20.0,
+        ),
+      ),
+      inputDecorationTheme:  InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+
+          hintStyle: TextStyle(color: Colors.black),
+          labelStyle: TextStyle(color: Colors.black),
+
+          contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 5)));
 }
