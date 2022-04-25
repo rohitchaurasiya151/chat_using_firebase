@@ -38,7 +38,9 @@ class AuthController extends GetxController {
       Get.offAll(() => const SignUpScreen());
     } else {
       // if the user exists and logged in the the user is navigated to the Home Screen
-      Get.offAll(() => const UsersList(searchString: "",));
+      Get.offAll(() => const UsersList(
+            searchString: "",
+          ));
     }
   }
 
@@ -49,7 +51,9 @@ class AuthController extends GetxController {
       Get.offAll(() => const SignUpScreen());
     } else {
       // if the user exists and logged in the the user is navigated to the Home Screen
-      Get.offAll(() => const UsersList(searchString: "",));
+      Get.offAll(() => const UsersList(
+            searchString: "",
+          ));
     }
   }
 

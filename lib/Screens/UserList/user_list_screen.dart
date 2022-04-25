@@ -1,5 +1,8 @@
 import 'dart:developer';
 
+import 'package:chat_using_firebase/model/UserModel.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,7 +21,8 @@ class UsersList extends StatefulWidget {
 
 class _UsersListState extends State<UsersList> {
   bool isShowSearchBar = false;
-  List<String> qbUserList = [
+  late User currentUser ;
+   List<String> qbUserList = [
     "rohit",
     "subham",
     "manish",
@@ -32,68 +36,101 @@ class _UsersListState extends State<UsersList> {
 
   @override
   void initState() {
+    currentUser = FirebaseAuth.instance.currentUser!;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: searchBar(),backgroundColor: isShowSearchBar ? Colors.white:null,elevation: 0,),
+        appBar: AppBar(
+          title: searchBar(),
+          backgroundColor: isShowSearchBar ? Colors.white : null,
+          elevation: 0,
+        ),
+        body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection("users").snapshots(),
+          builder: (context, streamSnapshot) {
+            // var user = streamSnapshot.data?.docs.map((doc) => UserModel.fromDocumentSnapshot(doc)).toList();
 
-      body: (qbUserList != null)
-          ? ListView.builder(
-              itemCount: qbUserList.length ,
-              itemBuilder: (BuildContext context, int index) {
-                return  _listItems(index);
+            if(streamSnapshot.connectionState == ConnectionState.waiting)
+              {
+                return const Center(child: CircularProgressIndicator(),);
+              }
+            List<UserModel>? users = streamSnapshot.data?.docs
+                .map((docSnapshot) =>
+                    UserModel.fromDocumentSnapshot(docSnapshot))
+                .toList();
+            return ListView.builder(
+              itemCount: users?.length,
+              itemBuilder: (BuildContext ctx, int index) {
+                if(users![index].uid == currentUser.uid){
+                  return const SizedBox();
+                }
+                return UserListTileWidget(userModel: users[index]);
               },
-            )
-          : const Center(
-              child: CircularProgressIndicator(),
-            ),
-    );
+            );
+          },
+        ));
   }
-
 
   searchBar() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        (isShowSearchBar)?
-        Expanded(
-          child: TextField(
-            decoration: const InputDecoration(
-                hintText: "Search...", prefixIcon: Icon(Icons.search,color: Colors.grey,)),
-            onChanged: (searchQuery) {
-              setState(() {searchQuery = searchQuery.toLowerCase();
-              });
-            },
-          ),
-        ):const Text("MyChat"),
+        (isShowSearchBar)
+            ? Expanded(
+                child: TextField(
+                  decoration: const InputDecoration(
+                      hintText: "Search...",
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.grey,
+                      )),
+                  onChanged: (searchQuery) {
+                    setState(() {
+                      searchQuery = searchQuery.toLowerCase();
+                    });
+                  },
+                ),
+              )
+            : const Text("MyChat"),
         InkWell(
-            onTap: (){
+            onTap: () {
               setState(() {
                 isShowSearchBar = !isShowSearchBar;
               });
             },
-            child:  Icon(isShowSearchBar?Icons.close:Icons.search,color: isShowSearchBar?Colors.grey:Colors.white,))
+            child: Icon(
+              isShowSearchBar ? Icons.close : Icons.search,
+              color: isShowSearchBar ? Colors.grey : Colors.white,
+            ))
       ],
     );
   }
+}
 
-  _listItems(int index) {
+class UserListTileWidget extends StatelessWidget {
+  const UserListTileWidget({
+    Key? key,
+    required this.userModel,
+  }) : super(key: key);
+  final UserModel userModel;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
         try {
           // Get.pu(
           //     MaterialPageRoute(builder: (_) => const ChatScreen()));
-          Get.to(() => const ChatScreen());
+          Get.to(() =>  ChatScreen(userModel: userModel,currentUser: FirebaseAuth.instance.currentUser!,));
         } on PlatformException catch (e) {
           log("sdfcsfg");
         }
       },
       child: Container(
-        padding:  EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           horizontal: 20.h,
           vertical: 15.h,
         ),
@@ -127,9 +164,9 @@ class _UsersListState extends State<UsersList> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Row(
-                        children: <Widget>[
+                        children:  <Widget>[
                           Text(
-                            qbUserList[index],
+                          userModel.displayName!,
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,

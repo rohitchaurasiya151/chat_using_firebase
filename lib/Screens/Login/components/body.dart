@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_using_firebase/Screens/Login/components/background.dart';
 import 'package:chat_using_firebase/Screens/Signup/signup_screen.dart';
@@ -5,6 +6,7 @@ import 'package:chat_using_firebase/components/already_have_an_account_check.dar
 import 'package:chat_using_firebase/components/rounded_button.dart';
 import 'package:chat_using_firebase/components/rounded_input_field.dart';
 import 'package:chat_using_firebase/components/rounded_password_field.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../UserList/user_list_screen.dart';
@@ -21,9 +23,12 @@ class Body extends StatefulWidget {
 class _BodyState extends State<Body> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+    Size size = MediaQuery
+        .of(context)
+        .size;
     return Background(
       child: SingleChildScrollView(
         child: Column(
@@ -49,19 +54,27 @@ class _BodyState extends State<Body> {
               onChanged: (value) {},
             ),
             RoundedButton(
-              text: "LOGIN",
-              press: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return   const UsersList(searchString: "ads",);
-                    },
-                  ),
-                );
+                text: "LOGIN",
+                press: () {
+                  try {
+                    var result = FirebaseAuth.instance
+                        .signInWithEmailAndPassword(
+                        email: emailController.text.trim(),
+                        password: passwordController.text.trim());
+                    print(result);
+                  } on PlatformException catch (exception) {
+                    print("asd");
 
-
-              },
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) {
+                    //       return   const UsersList(searchString: "ads",);
+                    //     },
+                    //   ),
+                    // );
+                  }
+                }
             ),
             SizedBox(height: size.height * 0.03),
             AlreadyHaveAnAccountCheck(

@@ -42,8 +42,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 
 import 'Auth/auth_controller.dart';
+import 'Screens/Signup/provider/SignUpProvider.dart';
 import 'constant/firebase_auth_constant.dart';
 
 final Future<FirebaseApp> firebaseInitialization =
@@ -67,14 +69,17 @@ class MyApp extends StatelessWidget {
       designSize: const Size(640, 1340),
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (_) => GetMaterialApp(
-        builder: EasyLoading.init(),
-        debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
-        theme: AppTheme.lightTheme,
-        // we don't really have to put the home page here
-        // GetX is going to navigate the user and clear the navigation stack
-        home: const Center(child: CircularProgressIndicator()),
+      builder: (_) => MultiProvider(
+        providers: [ChangeNotifierProvider(create: (_)=>SignUpProvider())],
+        child: GetMaterialApp(
+          builder: EasyLoading.init(),
+          debugShowCheckedModeBanner: false,
+          title: 'Flutter Demo',
+          theme: AppTheme.lightTheme,
+          // we don't really have to put the home page here
+          // GetX is going to navigate the user and clear the navigation stack
+          home: const Center(child: CircularProgressIndicator()),
+        ),
       ),
     );
   }
@@ -136,11 +141,9 @@ class AppTheme {
           fontSize: 20.0,
         ),
       ),
-      inputDecorationTheme:  InputDecorationTheme(
+      inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
-
           hintStyle: TextStyle(color: Colors.black),
           labelStyle: TextStyle(color: Colors.black),
-
           contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 5)));
 }

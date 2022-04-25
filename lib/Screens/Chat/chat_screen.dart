@@ -1,25 +1,37 @@
 import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+import '../../model/UserModel.dart';
 
-  // final QBDialog dialog;
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({Key? key, required this.userModel,required this.currentUser}) : super(key: key);
+  final UserModel userModel;
+  final User currentUser;
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  late List<String> messageList = ["efref", "sdfsf", "asdesdfr"];
   bool connectedServer = false;
   var messageBodyController = TextEditingController();
+  String? groupChatId;
 
   @override
   void initState() {
-    log("chat screen init called");
+    if(widget.currentUser.hashCode<=widget.userModel.hashCode){
+      groupChatId = "${widget.userModel.uid}-${FirebaseAuth.instance.currentUser?.uid.toString()}";
+    }
+    else {
+      groupChatId = "${FirebaseAuth.instance.currentUser?.uid.toString()}-${widget.userModel.uid}";
+
+    }
+
     super.initState();
   }
 
@@ -31,7 +43,10 @@ class _ChatScreenState extends State<ChatScreen> {
             alignment: Alignment.topRight,
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.80,
+                maxWidth: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.80,
               ),
               padding: const EdgeInsets.all(10),
               margin: const EdgeInsets.symmetric(vertical: 10),
@@ -56,40 +71,40 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           !isSameUser
               ? Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    Text(
-                      getTimeFormMillis(212152412),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black45,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: const CircleAvatar(
-                        radius: 15,
-                        backgroundImage:
-                            AssetImage("assets/images/contact.jpeg"),
-                      ),
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Text(
+                getTimeFormMillis(212152412),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black45,
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
                     ),
                   ],
-                )
-              : Container(
-                  child: null,
                 ),
+                child: const CircleAvatar(
+                  radius: 15,
+                  backgroundImage:
+                  AssetImage("assets/images/contact.jpeg"),
+                ),
+              ),
+            ],
+          )
+              : Container(
+            child: null,
+          ),
         ],
       );
     } else {
@@ -99,7 +114,10 @@ class _ChatScreenState extends State<ChatScreen> {
             alignment: Alignment.topLeft,
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.80,
+                maxWidth: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.80,
               ),
               padding: const EdgeInsets.all(10),
               margin: const EdgeInsets.symmetric(vertical: 10),
@@ -124,39 +142,39 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           !isSameUser
               ? Row(
-                  children: <Widget>[
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: const CircleAvatar(
-                        radius: 15,
-                        backgroundImage:
-                            AssetImage("assets/images/contact.jpeg"),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Text(
-                      getTimeFormMillis(12365421),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black45,
-                      ),
+            children: <Widget>[
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
                     ),
                   ],
-                )
-              : Container(
-                  child: null,
                 ),
+                child: const CircleAvatar(
+                  radius: 15,
+                  backgroundImage:
+                  AssetImage("assets/images/contact.jpeg"),
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Text(
+                getTimeFormMillis(12365421),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black45,
+                ),
+              ),
+            ],
+          )
+              : Container(
+            child: null,
+          ),
         ],
       );
     }
@@ -177,7 +195,9 @@ class _ChatScreenState extends State<ChatScreen> {
             IconButton(
               icon: const Icon(Icons.photo),
               iconSize: 25,
-              color: Theme.of(context).primaryColor,
+              color: Theme
+                  .of(context)
+                  .primaryColor,
               onPressed: () async {},
             ),
             Expanded(
@@ -192,10 +212,22 @@ class _ChatScreenState extends State<ChatScreen> {
             IconButton(
               icon: const Icon(Icons.send),
               iconSize: 25,
-              color: Theme.of(context).primaryColor,
+              color: Theme
+                  .of(context)
+                  .primaryColor,
               onPressed: () async {
                 log("messageBody::${messageBodyController.text}");
+
                 try {
+                  FirebaseFirestore.instance
+                      .collection(
+                      "message/$groupChatId/messages")
+                      .doc()
+                      .set({
+                    "messageText": messageBodyController.text,
+                    "sendBy": widget.userModel.uid,
+                    "sendAt": DateTime.now()
+                  });
                   messageBodyController.clear();
                 } on PlatformException catch (e) {
                   log("Exception while send message::$e");
@@ -230,19 +262,21 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
       appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Theme
+            .of(context)
+            .primaryColor,
         centerTitle: true,
         title: RichText(
           textAlign: TextAlign.center,
-          text: const TextSpan(
+          text: TextSpan(
             children: [
               TextSpan(
-                  text: "Sdfsgdf",
-                  style: TextStyle(
+                  text: widget.userModel.displayName,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   )),
-              TextSpan(text: '\n'),
+              const TextSpan(text: '\n'),
               /* widget.user.isOnline
                   ? TextSpan(
                       text: 'Online',
@@ -252,7 +286,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     )
                   : */
-              TextSpan(
+              const TextSpan(
                 text: 'Offline',
                 style: TextStyle(
                   fontSize: 11,
@@ -278,24 +312,36 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           children: <Widget>[
             Expanded(
-              child: (messageList != null)
-                  ? ListView.builder(
-                      reverse: true,
-                      padding: const EdgeInsets.all(20),
-                      itemCount: messageList.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        // final Message message = messages[index];
-                        const bool isMe = 122430715 == 21151141541;
-                        final bool isSameUser = prevUserId == 32165141615;
-                        prevUserId = 12362;
-                        return _chatBubble(
-                            messageList[index], isMe, isSameUser);
-                      },
-                    )
-                  : const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-            ),
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection("message/$groupChatId/messages")
+                      .orderBy("sendAt", descending: true)
+                      .snapshots(),
+                  builder: (BuildContext context, streamSnapshot) {
+                    if (streamSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (streamSnapshot.hasError) {
+                      return Text("Some Error occur=>${streamSnapshot.error}");
+                    } else {
+                      return ListView.builder(
+                        reverse: true,
+                        padding: const EdgeInsets.all(20),
+                        itemCount: streamSnapshot.data?.size,
+                        itemBuilder: (BuildContext context, int index) {
+                          var v = streamSnapshot.data?.docs[index];
+                          // final Message message = v!["messageText"];
+                          final bool isMe = widget.userModel.uid ==
+                              v!["sendBy"];
+                          final bool isSameUser = prevUserId == 32165141615;
+                          prevUserId = 12362;
+                          return _chatBubble(v["messageText"], isMe,
+                              isSameUser);
+                        },
+                      );
+                    }
+                  },
+                )),
             _sendMessageArea(),
           ],
         ),
