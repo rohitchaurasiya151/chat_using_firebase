@@ -1,13 +1,16 @@
 import 'dart:developer';
 
+import 'package:chat_using_firebase/Screens/SettingsScreen/settings.dart';
 import 'package:chat_using_firebase/model/UserModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 
+import '../../constant/string_constant.dart';
 import '../Chat/chat_screen.dart';
 
 class UsersList extends StatefulWidget {
@@ -19,62 +22,178 @@ class UsersList extends StatefulWidget {
   _UsersListState createState() => _UsersListState();
 }
 
-class _UsersListState extends State<UsersList> {
+class _UsersListState extends State<UsersList>
+    with SingleTickerProviderStateMixin {
+  //for display search bar
   bool isShowSearchBar = false;
-  late User currentUser ;
-   List<String> qbUserList = [
-    "rohit",
-    "subham",
-    "manish",
-    "kavita",
-    "nikhil",
-    "nidhi"
-  ];
 
-  // List<QBUser> qbUserListforDisplay;
-  // QBDialog createdDialog;
+  //current firebase user
+  late User currentUser;
+
+  //creating dynamic a list for side popup menu
+  List<PopupMenuItem> popUpMenuItem = [];
+
+  //Scroll controller
+  final ScrollController _scrollController = ScrollController();
+
+  //TabBar controller
+  late TabController tbController;
+
+  //icon for floating action button
+
+  IconData? floatingActionIcon;
 
   @override
   void initState() {
+    //firebase  current user
     currentUser = FirebaseAuth.instance.currentUser!;
+
+    //creating popup menu list
+    popUpMenuItem = popUpMenuItemList.map((element) {
+      return PopupMenuItem(child: Text(element), value: element);
+    }).toList();
+
+    //initializing with 4 tab items
+    tbController = TabController(length: 4, vsync: this);
+
+    tbController.index = 1;
+
+    tbController.addListener(() {
+      setState(() {});
+      switch (tbController.index) {
+        case 0:
+          floatingActionIcon = null;
+          break;
+        case 1:
+          floatingActionIcon = Icons.message;
+          break;
+        case 2:
+          floatingActionIcon = Icons.camera_alt_sharp;
+          break;
+        case 3:
+          floatingActionIcon = Icons.call;
+          break;
+      }
+    });
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: searchBar(),
-          backgroundColor: isShowSearchBar ? Colors.white : null,
-          elevation: 0,
-        ),
-        body: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection("users").snapshots(),
-          builder: (context, streamSnapshot) {
-            // var user = streamSnapshot.data?.docs.map((doc) => UserModel.fromDocumentSnapshot(doc)).toList();
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverAppBar(
+            title: searchBar(),
+            backgroundColor: isShowSearchBar ? Colors.white : null,
+            elevation: 0,
+            pinned: true,
+            floating: true,
+            bottom: TabBar(
+                controller: tbController,
+                isScrollable: true,
+                indicatorColor: Colors.white,
+                indicatorWeight: 5,
+                indicatorSize: TabBarIndicatorSize.tab,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                tabs: const [
+                  Icon(Icons.camera_alt_outlined),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Tab(text: "CHATS"),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Tab(text: "STATUS"),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Tab(text: "CALLS"),
+                  )
+                ]),
+          ),
+          SliverFillRemaining(
+            child: TabBarView(
+              controller: tbController,
+              children: [
+                const Center(
+                  child: Text("Camera"),
+                ),
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection("users")
+                      .snapshots(),
+                  builder: (context, streamSnapshot) {
+                    if (streamSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    List<UserModel>? users = streamSnapshot.data?.docs
+                        .map((docSnapshot) =>
+                            UserModel.fromDocumentSnapshot(docSnapshot))
+                        .toList();
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      physics: const ScrollPhysics(),
+                      itemCount: users?.length,
+                      itemBuilder: (BuildContext ctx, int index) {
+                        if (users![index].uid == currentUser.uid) {
+                          return Container(
+                            color: Colors.black,
+                          );
+                        }
 
-            if(streamSnapshot.connectionState == ConnectionState.waiting)
-              {
-                return const Center(child: CircularProgressIndicator(),);
-              }
-            List<UserModel>? users = streamSnapshot.data?.docs
-                .map((docSnapshot) =>
-                    UserModel.fromDocumentSnapshot(docSnapshot))
-                .toList();
-            return ListView.builder(
-              itemCount: users?.length,
-              itemBuilder: (BuildContext ctx, int index) {
-                if(users![index].uid == currentUser.uid){
-                  return const SizedBox();
-                }
-                return UserListTileWidget(userModel: users[index]);
-              },
-            );
-          },
-        ));
+                        return UserListTileWidget(userModel: users[index]);
+                      },
+                    );
+                  },
+                ),
+                const Center(
+                  child: Text("STATUS"),
+                ),
+                const Center(
+                  child: Text("CALLS"),
+                ),
+              ],
+            ),
+          )
+        ],
+        shrinkWrap: true,
+      ),
+      floatingActionButton: Visibility(
+        visible: (floatingActionIcon != null) ? true : false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (floatingActionIcon == Icons.camera_alt_sharp)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: FloatingActionButton(
+                    onPressed: () {},
+                    backgroundColor: Colors.grey,
+                    child: const Icon(
+                      Icons.edit,
+                      color: Colors.white,
+                    )),
+              ),
+            FloatingActionButton(
+                onPressed: () {},
+                child: Icon(
+                  floatingActionIcon,
+                  color: Colors.white,
+                )),
+          ],
+        ),
+      ),
+    );
   }
 
-  searchBar() {
+  Widget searchBar() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -95,18 +214,50 @@ class _UsersListState extends State<UsersList> {
                 ),
               )
             : const Text("MyChat"),
-        InkWell(
-            onTap: () {
-              setState(() {
-                isShowSearchBar = !isShowSearchBar;
-              });
-            },
-            child: Icon(
-              isShowSearchBar ? Icons.close : Icons.search,
-              color: isShowSearchBar ? Colors.grey : Colors.white,
-            ))
+        Row(
+          children: [
+            InkWell(
+                onTap: () {
+                  setState(() {
+                    isShowSearchBar = !isShowSearchBar;
+                  });
+                },
+                child: Icon(
+                  isShowSearchBar ? Icons.close : Icons.search,
+                  color: isShowSearchBar ? Colors.grey : Colors.white,
+                )),
+            PopupMenuButton(
+                icon: const Icon(FontAwesomeIcons.ellipsisVertical),
+                onSelected: _selectedMenu,
+                itemBuilder: (context) => popUpMenuItem)
+          ],
+        )
       ],
     );
+  }
+
+  void _selectedMenu(value) {
+    log("Selected menu => " + value.toString());
+    switch (value) {
+      case wcNewGroup:
+        // Get.toNamed("/");
+        break;
+      case wcNewBroadcast:
+        // Get.toNamed("/");
+        break;
+      case wcLinkedDevices:
+        // Get.toNamed("/");
+        break;
+      case wcStarredMessages:
+        // Get.toNamed("/");
+        break;
+      case wcPayments:
+        // Get.toNamed("/");
+        break;
+      case wcSettings:
+        Get.to(()=>const SettingsScreen());
+        break;
+    }
   }
 }
 
@@ -124,7 +275,10 @@ class UserListTileWidget extends StatelessWidget {
         try {
           // Get.pu(
           //     MaterialPageRoute(builder: (_) => const ChatScreen()));
-          Get.to(() =>  ChatScreen(userModel: userModel,currentUser: FirebaseAuth.instance.currentUser!,));
+          Get.to(() => ChatScreen(
+                userModel: userModel,
+                currentUser: FirebaseAuth.instance.currentUser!,
+              ));
         } on PlatformException catch (e) {
           log("sdfcsfg");
         }
@@ -164,9 +318,9 @@ class UserListTileWidget extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Row(
-                        children:  <Widget>[
+                        children: <Widget>[
                           Text(
-                          userModel.displayName!,
+                            userModel.displayName!,
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
